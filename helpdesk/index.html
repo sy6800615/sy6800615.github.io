@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Helpdesk — Submit a Ticket</title>
+<style>
+  :root{
+    --ink:#0f172a;
+    --ink-soft:#475569;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --line-soft:#eef2f7;
+    --bg:#f4f6fa;
+    --card:#ffffff;
+    --blue:#1d6ff2;
+    --blue-dark:#1558c9;
+    --blue-soft:#eaf2ff;
+    --navy:#0b1220;
+    --ok:#0f9d58;
+    --warn:#e8912d;
+    --danger:#dc3b3b;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 32px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI", Inter, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  button{font-family:inherit}
+  a{color:inherit}
+
+  .shell{
+    max-width:1220px;
+    margin:0 auto;
+    padding:28px 24px 48px;
+    display:grid;
+    grid-template-columns:320px minmax(0,1fr);
+    gap:28px;
+    align-items:start;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .side{
+    background:
+      radial-gradient(300px 300px at 96% -14%, rgba(74,163,255,.55) 0%, rgba(29,111,242,.28) 42%, rgba(29,111,242,0) 74%),
+      linear-gradient(165deg,#101a2e 0%, #0b1220 60%, #0a1526 100%);
+    border-radius:20px;
+    padding:26px 24px 22px;
+    color:#e8eef8;
+    position:sticky;
+    top:28px;
+    overflow:hidden;
+    box-shadow:0 18px 40px rgba(10,20,40,.22);
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; color:#7f93b3; margin:0 0 10px;
+  }
+  .side h2{
+    margin:0 0 6px; font-size:23px; letter-spacing:-.01em; font-weight:650; color:#fff;
+    position:relative; z-index:1;
+  }
+  .side .sub{
+    margin:0 0 22px; font-size:13.5px; color:#93a6c4; position:relative; z-index:1;
+    max-width:230px;
+  }
+  .side-link{
+    position:relative; z-index:1;
+    display:flex; align-items:center; gap:10px;
+    width:100%; text-align:left;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    color:#dce7f7;
+    border-radius:11px;
+    padding:11px 13px;
+    font-size:13.5px; font-weight:550;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .side-link:hover{background:rgba(255,255,255,.11); border-color:rgba(255,255,255,.2)}
+  .side-link + .side-link{margin-top:9px}
+  .side-link .count{
+    margin-left:auto; font-size:11.5px; font-weight:700;
+    background:rgba(29,111,242,.9); color:#fff;
+    border-radius:20px; padding:1px 8px;
+  }
+  .side-foot{
+    position:relative; z-index:1;
+    margin-top:26px; padding-top:16px;
+    border-top:1px solid rgba(255,255,255,.09);
+    font-size:11.5px; color:#6f83a3;
+    display:flex; justify-content:space-between; gap:10px;
+  }
+  .status-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:#38d39f; margin-right:6px; vertical-align:middle;
+    box-shadow:0 0 0 3px rgba(56,211,159,.15);
+  }
+
+  /* ---------- Main ---------- */
+  main{min-width:0}
+  .table-wrap{max-width:100%}
+  .main-head{padding:6px 0 22px}
+  .main-head .eyebrow{color:#8794ab; margin-bottom:12px}
+  h1{
+    margin:0 0 10px;
+    font-size:clamp(30px, 4.4vw, 46px);
+    line-height:1.08;
+    letter-spacing:-.025em;
+    font-weight:700;
+  }
+  h1 .accent{color:var(--blue)}
+  .lede{
+    margin:0; color:var(--ink-soft); font-size:15px; max-width:560px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 28px 28px;
+  }
+  .card-head{display:flex; align-items:flex-start; gap:12px; margin-bottom:6px}
+  .card-head h3{margin:0; font-size:18.5px; letter-spacing:-.01em; font-weight:650}
+  .card-head p{margin:2px 0 0; font-size:13.5px; color:var(--muted)}
+  .required-note{font-size:12.5px; color:var(--muted); margin:0 0 20px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px 18px}
+  .field{display:flex; flex-direction:column; min-width:0}
+  .field.wide{grid-column:1 / -1}
+  label{
+    font-size:13px; font-weight:600; color:#26334d; margin-bottom:6px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .req{color:var(--blue); font-weight:700}
+  input[type=text], input[type=email], input[type=tel], input[type=password], select, textarea{
+    width:100%;
+    font:inherit; font-size:14px;
+    color:var(--ink);
+    background:#fbfcfe;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:11px 12px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  input::placeholder, textarea::placeholder{color:#9aa7bb}
+  input:focus, select:focus, textarea:focus{
+    background:#fff;
+    border-color:#9dc0fb;
+    box-shadow:0 0 0 4px rgba(29,111,242,.10);
+  }
+  textarea{resize:vertical; min-height:96px}
+  select{appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px}
+  .hint{font-size:12px; color:#8b98ad; margin-top:5px}
+  .err{font-size:12px; color:var(--danger); margin-top:5px; display:none}
+  .field.invalid input, .field.invalid select, .field.invalid textarea{border-color:#f0b4b4; background:#fff8f8}
+  .field.invalid .err{display:block}
+
+  .drop{
+    border:1.5px dashed #cbd6e6;
+    border-radius:12px;
+    background:#fbfcfe;
+    padding:16px;
+    display:flex; align-items:center; gap:12px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .drop:hover, .drop.drag{border-color:#9dc0fb; background:var(--blue-soft)}
+  .drop svg{flex:none}
+  .drop .txt{font-size:13px; color:var(--ink-soft); min-width:0}
+  .drop .txt b{color:var(--blue); font-weight:600}
+  .drop .file{font-size:12.5px; color:#0f7a4d; margin-top:2px; word-break:break-all}
+  .drop input{display:none}
+
+  .form-foot{
+    margin-top:22px; padding-top:18px; border-top:1px solid var(--line-soft);
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .form-foot .note{font-size:12.5px; color:var(--muted); max-width:420px}
+  .btn{
+    border:0; border-radius:11px; cursor:pointer;
+    font-size:14px; font-weight:600;
+    padding:12px 22px;
+    transition:transform .06s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{
+    background:var(--blue); color:#fff;
+    box-shadow:0 6px 16px rgba(29,111,242,.25);
+  }
+  .btn-primary:hover{background:var(--blue-dark)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-ghost{background:#f1f5fb; color:#33415c}
+  .btn-ghost:hover{background:#e7eef9}
+  .btn-sm{padding:7px 13px; font-size:12.5px; border-radius:9px}
+
+  /* ---------- Success ---------- */
+  .success{display:none; text-align:center; padding:16px 8px 8px}
+  .success.show{display:block}
+  .tick{
+    width:60px;height:60px;border-radius:50%;
+    background:#e8f8ef; color:var(--ok);
+    display:grid; place-items:center; margin:0 auto 16px;
+  }
+  .success h3{margin:0 0 8px; font-size:21px; letter-spacing:-.01em}
+  .success p{margin:0 auto 6px; color:var(--ink-soft); font-size:14px; max-width:420px}
+  .ticket-chip{
+    display:inline-block; margin:14px 0 20px;
+    font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:15px; font-weight:700; letter-spacing:.04em;
+    background:var(--blue-soft); color:var(--blue-dark);
+    border:1px dashed #b9d2fb; border-radius:10px; padding:9px 16px;
+  }
+  .success .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  /* ---------- Tickets list ---------- */
+  .list-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px}
+  .list-head h3{margin:0; font-size:18.5px; font-weight:650}
+  .search{
+    display:flex; align-items:center; gap:8px;
+    background:#fbfcfe; border:1px solid var(--line); border-radius:10px;
+    padding:8px 11px; min-width:220px;
+  }
+  .search input{border:0; background:transparent; padding:0; font-size:13.5px; outline:none; width:100%}
+  .search input:focus{box-shadow:none}
+  .search svg{flex:none; color:#8b98ad}
+
+  .tickets{display:flex; flex-direction:column; gap:10px}
+  .ticket{
+    border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px 16px;
+    align-items:center; background:#fff;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .ticket:hover{border-color:#cbd9ef; box-shadow:0 6px 18px rgba(15,23,42,.05)}
+  .ticket .id{
+    font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:11.5px; font-weight:700; color:var(--blue-dark); letter-spacing:.03em;
+  }
+  .ticket .title{font-size:14.5px; font-weight:600; margin:3px 0 4px; word-break:break-word}
+  .ticket .meta{font-size:12px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap}
+  .badges{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+  .badge{
+    font-size:11px; font-weight:700; letter-spacing:.03em;
+    border-radius:20px; padding:3px 10px; white-space:nowrap;
+    border:1px solid transparent;
+  }
+  .b-low{background:#eef4ff; color:#2c5db8; border-color:#d9e6ff}
+  .b-medium{background:#fff6e6; color:#96610f; border-color:#f7e4c2}
+  .b-high{background:#ffefe6; color:#a34a13; border-color:#f8dcc9}
+  .b-critical{background:#ffecec; color:#ad2020; border-color:#f8cfcf}
+  .b-open{background:#eef9f2; color:#0f7a4d; border-color:#cfeedd}
+  .b-resolved{background:#f1f4f9; color:#5a6a83; border-color:#e1e7f0}
+
+  .empty{
+    text-align:center; padding:44px 16px; color:var(--muted);
+    border:1.5px dashed var(--line); border-radius:12px; background:#fbfcfe;
+  }
+  .empty svg{color:#c3cfdf; margin-bottom:10px}
+  .empty p{margin:0 0 14px; font-size:14px}
+
+  .view{display:none}
+  .view.active{display:block}
+  .back{
+    background:none; border:0; color:var(--muted); font-size:13px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; padding:0; margin-bottom:14px;
+  }
+  .back:hover{color:var(--blue)}
+
+  /* ---------- Admin dashboard ---------- */
+  .admin-sub{margin:2px 0 0; font-size:13px; color:var(--muted)}
+  .admin-actions{display:flex; gap:8px; flex-wrap:wrap}
+  .kpis{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:2px 0 18px}
+  .kpi{border:1px solid var(--line); border-radius:12px; padding:13px 14px; background:#fbfcfe}
+  .kpi .k{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#8794ab; font-weight:700}
+  .kpi .v{font-size:26px; font-weight:700; letter-spacing:-.02em; margin-top:4px; line-height:1.1}
+  .kpi.crit .v{color:var(--danger)}
+  .kpi.open .v{color:var(--blue)}
+  .kpi.prog .v{color:var(--warn)}
+  .kpi.done .v{color:var(--ok)}
+  .filters{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
+  .chips{display:flex; gap:4px; background:#f1f5fb; padding:3px; border-radius:11px}
+  .chip{border:0; background:transparent; font-size:12.5px; font-weight:600; color:#5a6a83; padding:7px 12px; border-radius:9px; cursor:pointer}
+  .chip.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(15,23,42,.12)}
+  .filters select{width:auto; min-width:145px; padding:8px 30px 8px 11px; font-size:13px}
+  .table-wrap{border:1px solid var(--line); border-radius:12px; overflow-x:auto}
+  table.adm{width:100%; border-collapse:collapse; font-size:13.5px}
+  table.adm th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#8794ab; font-weight:700; background:#f8fafd; padding:11px 10px; border-bottom:1px solid var(--line); white-space:nowrap}
+  table.adm td{padding:12px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top}
+  table.adm tr:last-child td{border-bottom:0}
+  table.adm tbody tr{cursor:pointer}
+  table.adm tbody tr:hover{background:#f9fbfe}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; font-weight:700; color:var(--blue-dark); white-space:nowrap}
+  .who{font-weight:600}
+  .who span{display:block; font-weight:400; color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px}
+  table.adm th:nth-child(2), table.adm td:nth-child(2){min-width:150px}
+  table.adm th:first-child, table.adm td:first-child{padding-left:14px}
+  table.adm th:last-child, table.adm td:last-child{padding-right:14px}
+  .b-progress{background:#fff6e6; color:#96610f; border-color:#f7e4c2}
+
+  /* ---------- Admin login ---------- */
+  .login-card{max-width:430px; margin:0 auto; padding:28px}
+  .lock{width:46px;height:46px;border-radius:13px;background:var(--blue-soft);color:var(--blue-dark);display:grid;place-items:center;margin-bottom:14px}
+  .login-card h3{margin:0 0 4px; font-size:19px; font-weight:650; letter-spacing:-.01em}
+  .login-card .sub{margin:0 0 18px; font-size:13.5px; color:var(--muted)}
+  .pw-wrap{position:relative}
+  .pw-wrap input{padding-right:56px}
+  .eye{position:absolute; right:6px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#8b98ad; cursor:pointer; padding:6px 8px; border-radius:8px; font-size:12px; font-weight:600}
+  .eye:hover{background:#f1f5fb; color:var(--ink-soft)}
+  .login-err{display:none; background:#fff1f1; border:1px solid #f8cfcf; color:#ad2020; border-radius:9px; padding:9px 12px; font-size:12.5px; margin-bottom:14px}
+  .login-err.show{display:block}
+  .login-card .btn{width:100%; margin-top:8px}
+  .login-note{margin:16px 0 0; font-size:12px; color:#8b98ad; text-align:center; line-height:1.5}
+
+  .modal{position:fixed; inset:0; background:rgba(15,23,42,.42); display:none; align-items:center; justify-content:center; padding:20px; z-index:50}
+  .modal.show{display:flex}
+  .modal-card{background:#fff; border-radius:16px; width:min(620px,100%); max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(15,23,42,.3)}
+  .modal-head{display:flex; justify-content:space-between; gap:12px; padding:18px 20px; border-bottom:1px solid var(--line); align-items:flex-start}
+  .modal-head h4{margin:0; font-size:16.5px; letter-spacing:-.01em}
+  .modal-head .mono{display:block; margin-bottom:5px}
+  .x{border:0; background:#f1f5fb; color:#475569; width:30px; height:30px; border-radius:9px; cursor:pointer; font-size:15px; line-height:1}
+  .x:hover{background:#e7eef9}
+  .modal-body{padding:18px 20px}
+  .kv{display:grid; grid-template-columns:112px 1fr; gap:8px 12px; font-size:13.5px; margin-bottom:16px}
+  .kv .k{color:var(--muted); font-size:12.5px}
+  .kv .v{word-break:break-word}
+  .desc{background:#f8fafd; border:1px solid var(--line-soft); border-radius:10px; padding:12px; font-size:13.5px; white-space:pre-wrap; color:#26334d; margin-bottom:16px}
+  .modal-foot{display:flex; gap:10px; justify-content:flex-end; align-items:center; padding:14px 20px; border-top:1px solid var(--line); flex-wrap:wrap}
+
+  @media (max-width: 900px){
+    .shell{grid-template-columns:1fr; padding:18px 16px 40px; gap:20px}
+    .side{position:static; padding:20px}
+    .grid{grid-template-columns:1fr}
+    .card{padding:20px 18px 22px}
+    .form-foot{flex-direction:column; align-items:stretch}
+    .form-foot .btn{width:100%}
+    .ticket{grid-template-columns:1fr}
+    .badges{justify-content:flex-start}
+    .search{min-width:0; width:100%}
+    .kpis{grid-template-columns:1fr 1fr}
+    table.adm{min-width:660px}
+    .filters select{width:100%}
+    .chips{width:100%; overflow-x:auto}
+    .admin-actions{width:100%}
+    .modal{padding:10px}
+    .kv{grid-template-columns:100px 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="side">
+    <p class="eyebrow">01 Support</p>
+    <h2>Ticket desk</h2>
+    <p class="sub">Raise an issue, track its status, and get help from the IT team.</p>
+
+    <button class="side-link" id="navNew">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Submit a ticket
+    </button>
+    <button class="side-link" id="navTickets">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      Check status of my tickets
+      <span class="count" id="ticketCount">0</span>
+    </button>
+    <button class="side-link" id="navAdmin">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      IT admin dashboard
+    </button>
+
+    <div class="side-foot">
+      <span><span class="status-dot"></span>Helpdesk online</span>
+      <span id="buildStamp">v1.2 · 2026-11-23</span>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <header class="main-head">
+      <p class="eyebrow" id="pageEyebrow">Internal IT Support</p>
+      <h1 id="pageTitle">How can we help<br><span class="accent">you today?</span></h1>
+      <p class="lede" id="pageLede">Raise an IT support request and our team will get back to you. Please provide as much detail as possible so we can resolve it faster.</p>
+    </header>
+
+    <!-- ---- VIEW: NEW TICKET ---- -->
+    <section class="view active" id="viewNew">
+      <div class="card" id="formCard">
+        <div class="card-head">
+          <div>
+            <h3>Submit a ticket</h3>
+            <p>Fill in the form. You'll get a ticket ID you can use to track it.</p>
+          </div>
+        </div>
+        <p class="required-note">Fields marked <span class="req">*</span> are required.</p>
+
+        <form id="ticketForm" novalidate>
+          <div class="grid">
+            <div class="field" data-field="name">
+              <label for="name">Your name <span class="req">*</span></label>
+              <input type="text" id="name" name="name" placeholder="e.g. Shailesh Yadav" autocomplete="name">
+              <span class="err">Please enter your name.</span>
+            </div>
+
+            <div class="field" data-field="email">
+              <label for="email">Work email <span class="req">*</span></label>
+              <input type="email" id="email" name="email" placeholder="name@company.com" autocomplete="email">
+              <span class="err">Enter a valid work email address.</span>
+            </div>
+
+            <div class="field" data-field="department">
+              <label for="department">Department</label>
+              <select id="department" name="department">
+                <option value="">Select department</option>
+                <option>IT</option>
+                <option>Human Resources</option>
+                <option>Finance &amp; Accounts</option>
+                <option>Sales</option>
+                <option>Operations</option>
+                <option>Admin</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field" data-field="phone">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" autocomplete="tel">
+              <span class="err">Enter a valid phone number.</span>
+            </div>
+
+            <div class="field" data-field="asset">
+              <label for="asset">Asset number</label>
+              <input type="text" id="asset" name="asset" placeholder="e.g. LAP-0142">
+              <span class="hint">Sticker on your laptop or monitor, if you have one.</span>
+            </div>
+
+            <div class="field" data-field="priority">
+              <label for="priority">Priority <span class="req">*</span></label>
+              <select id="priority" name="priority">
+                <option value="">Select priority</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+              <span class="err">Please select a priority.</span>
+            </div>
+
+            <div class="field wide" data-field="subject">
+              <label for="subject">Short description <span class="req">*</span></label>
+              <input type="text" id="subject" name="subject" placeholder="e.g. Laptop not connecting to office Wi-Fi">
+              <span class="err">Please give a short description of the issue.</span>
+            </div>
+
+            <div class="field wide" data-field="details">
+              <label for="details">Detailed description <span class="req">*</span></label>
+              <textarea id="details" name="details" placeholder="What happened, when did it start, any error message you saw, and what you already tried."></textarea>
+              <span class="err">Please describe the issue in a little detail.</span>
+            </div>
+
+            <div class="field wide" data-field="attachment">
+              <label for="file">Attachment</label>
+              <label class="drop" id="drop" for="file">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d6ff2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span class="txt">
+                  <span id="dropLabel"><b>Click to upload</b> or drag a screenshot / file here</span>
+                  <span class="file" id="fileName"></span>
+                </span>
+              </label>
+              <input type="file" id="file" name="file">
+              <span class="hint">Max 10 MB. Only the file name is saved with the ticket — the file stays on your device.</span>
+            </div>
+          </div>
+
+          <div class="form-foot">
+            <p class="note">Your ticket is saved in this browser. Share the ticket ID with the IT team.</p>
+            <button type="submit" class="btn btn-primary">Submit ticket</button>
+          </div>
+        </form>
+
+        <!-- success state -->
+        <div class="success" id="success">
+          <div class="tick">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3>Ticket submitted</h3>
+          <p>Thanks — your request has been logged. Keep this ticket ID for follow-up.</p>
+          <div class="ticket-chip" id="successId">TKT-1001</div>
+          <div class="actions">
+            <button class="btn btn-primary" id="viewMyTickets">View my tickets</button>
+            <button class="btn btn-ghost" id="raiseAnother">Raise another ticket</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- VIEW: MY TICKETS ---- -->
+    <section class="view" id="viewTickets">
+      <div class="card">
+        <button class="back" id="backToForm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          New ticket
+        </button>
+        <div class="list-head">
+          <h3>My tickets</h3>
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            <input type="text" id="searchTickets" placeholder="Search by ID or subject">
+          </div>
+        </div>
+        <div class="tickets" id="ticketList"></div>
+        <div class="empty" id="emptyState">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>
+          <p>No tickets yet. Submit one and it will appear here.</p>
+          <button class="btn btn-primary btn-sm" id="emptyNew">Submit a ticket</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- VIEW: ADMIN DASHBOARD ---- -->
+    <section class="view" id="viewAdmin">
+      <div class="card">
+        <button class="back" id="backFromAdmin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          New ticket
+        </button>
+        <div class="list-head" style="margin-bottom:14px">
+          <div>
+            <h3>All tickets</h3>
+            <p class="admin-sub">Open a row to change status, priority or add an internal note.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="btn btn-ghost btn-sm" id="exportCsv">Export CSV</button>
+            <button class="btn btn-ghost btn-sm" id="exportJson">Backup</button>
+            <button class="btn btn-ghost btn-sm" id="importJsonBtn">Restore</button>
+            <button class="btn btn-ghost btn-sm" id="seedDemo">Sample data</button>
+            <button class="btn btn-ghost btn-sm" id="clearAll">Clear all</button>
+            <button class="btn btn-ghost btn-sm" id="openPw">Change password</button>
+            <button class="btn btn-ghost btn-sm" id="signOut">Sign out</button>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="k">Total</div><div class="v" id="kpiTotal">0</div></div>
+          <div class="kpi open"><div class="k">Open</div><div class="v" id="kpiOpen">0</div></div>
+          <div class="kpi prog"><div class="k">In progress</div><div class="v" id="kpiProg">0</div></div>
+          <div class="kpi done"><div class="k">Resolved</div><div class="v" id="kpiDone">0</div></div>
+          <div class="kpi crit"><div class="k">Critical open</div><div class="v" id="kpiCrit">0</div></div>
+        </div>
+
+        <div class="filters">
+          <div class="search" style="flex:1 1 200px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            <input type="text" id="adminSearch" placeholder="Search ID, subject, requester">
+          </div>
+          <div class="chips" id="statusChips">
+            <button class="chip on" data-status="All">All</button>
+            <button class="chip" data-status="Open">Open</button>
+            <button class="chip" data-status="In Progress">In progress</button>
+            <button class="chip" data-status="Resolved">Resolved</button>
+          </div>
+          <select id="adminPriority">
+            <option value="All">All priorities</option>
+            <option>Critical</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <select id="adminDept"><option value="All">All departments</option></select>
+          <select id="adminSort">
+            <option value="new">Newest first</option>
+            <option value="old">Oldest first</option>
+            <option value="prio">Priority</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="adm">
+            <thead>
+              <tr><th>Ticket</th><th>Subject</th><th>Requester</th><th>Priority</th><th>Status</th><th>Raised</th></tr>
+            </thead>
+            <tbody id="adminRows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="adminEmpty" style="margin-top:14px">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>
+          <p>No tickets yet. Add sample data to see how the dashboard looks.</p>
+          <button class="btn btn-primary btn-sm" id="adminSeedEmpty">Add sample data</button>
+        </div>
+      </div>
+    </section>
+    <!-- ---- VIEW: ADMIN LOGIN ---- -->
+    <section class="view" id="viewLogin">
+      <div class="card login-card">
+        <div class="lock">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </div>
+        <h3>IT admin sign in</h3>
+        <p class="sub">Only the IT team should open the ticket dashboard.</p>
+        <div class="login-err" id="loginErr"></div>
+        <form id="loginForm" autocomplete="on">
+          <div class="field" style="margin-bottom:14px">
+            <label for="loginUser">Username</label>
+            <input type="text" id="loginUser" autocomplete="username" placeholder="admin">
+          </div>
+          <div class="field">
+            <label for="loginPass">Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="loginPass" autocomplete="current-password" placeholder="Enter password">
+              <button type="button" class="eye" id="togglePass">Show</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Sign in</button>
+        </form>
+        <p class="login-note">Default credentials are set inside this file's script.<br>Change the password from the dashboard after your first sign in.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<input type="file" id="importJson" accept="application/json,.json" hidden>
+
+<!-- ---- TICKET DETAIL MODAL ---- -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalSubject">
+    <div class="modal-head">
+      <div>
+        <span class="mono" id="modalId">TKT-1001</span>
+        <h4 id="modalSubject">Subject</h4>
+      </div>
+      <button class="x" id="modalClose" title="Close">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="modalDelete" style="margin-right:auto;color:#ad2020">Delete ticket</button>
+      <button class="btn btn-ghost btn-sm" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="modalSave">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---- CHANGE PASSWORD MODAL ---- -->
+<div class="modal" id="pwModal" aria-hidden="true">
+  <div class="modal-card" style="max-width:440px" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+    <div class="modal-head">
+      <div>
+        <h4 id="pwTitle">Change admin password</h4>
+      </div>
+      <button class="x" id="pwClose" title="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="login-err" id="pwErr"></div>
+      <div class="field" style="margin-bottom:12px">
+        <label for="pwCurrent">Current password</label>
+        <input type="password" id="pwCurrent" autocomplete="current-password">
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <label for="pwNew">New password</label>
+        <input type="password" id="pwNew" autocomplete="new-password">
+        <span class="hint">At least 6 characters.</span>
+      </div>
+      <div class="field">
+        <label for="pwConfirm">Confirm new password</label>
+        <input type="password" id="pwConfirm" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" id="pwCancel">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="pwSave">Save password</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORE_KEY = "helpdesk.tickets.v1";
+  var SEQ_KEY   = "helpdesk.seq.v1";
+  var START_SEQ = 1001;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- storage ---------- */
+  function loadTickets() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      console.warn("Could not read saved tickets:", e);
+      return [];
+    }
+  }
+  function saveTickets(list) {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.warn("Could not save ticket:", e);
+      alert("Your browser blocked local storage, so this ticket could not be saved. Please copy the ticket ID before closing the page.");
+    }
+  }
+  function nextId() {
+    var n = parseInt(localStorage.getItem(SEQ_KEY) || "0", 10);
+    if (!n || n < START_SEQ) { n = START_SEQ; }
+    var id = "TKT-" + n;
+    try { localStorage.setItem(SEQ_KEY, String(n + 1)); } catch (e) {}
+    return id;
+  }
+
+  /* ---------- views ---------- */
+  var viewNew = $("viewNew"), viewTickets = $("viewTickets"), viewAdmin = $("viewAdmin"), viewLogin = $("viewLogin");
+
+  var HEADERS = {
+    "new": {
+      e: "Internal IT Support",
+      t: 'How can we help<br><span class="accent">you today?</span>',
+      l: "Raise an IT support request and our team will get back to you. Please provide as much detail as possible so we can resolve it faster."
+    },
+    "tickets": {
+      e: "Internal IT Support",
+      t: 'My <span class="accent">tickets</span>',
+      l: "Everything you've raised from this browser, with its live status."
+    },
+    "admin": {
+      e: "IT team · Admin",
+      t: 'Ticket <span class="accent">dashboard</span>',
+      l: "All tickets in one place. Open a row to change status, priority or add a note."
+    },
+    "login": {
+      e: "Restricted area",
+      t: 'Admin <span class="accent">login</span>',
+      l: "Sign in to view and manage every ticket raised in this browser."
+    }
+  };
+
+  function showView(which) {
+    if (which === "admin" && !isAuthed()) { which = "login"; }
+    viewNew.classList.toggle("active", which === "new");
+    viewTickets.classList.toggle("active", which === "tickets");
+    viewAdmin.classList.toggle("active", which === "admin");
+    viewLogin.classList.toggle("active", which === "login");
+    var h = HEADERS[which] || HEADERS["new"];
+    $("pageEyebrow").textContent = h.e;
+    $("pageTitle").innerHTML = h.t;
+    $("pageLede").textContent = h.l;
+    if (which === "tickets") { renderTickets(); }
+    if (which === "admin") { renderAdmin(); }
+    if (which === "login") {
+      $("loginErr").classList.remove("show");
+      setTimeout(function () { $("loginUser").focus(); }, 60);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- validation helpers ---------- */
+  function setInvalid(fieldName, bad) {
+    var wrap = document.querySelector('[data-field="' + fieldName + '"]');
+    if (wrap) { wrap.classList.toggle("invalid", !!bad); }
+  }
+  function validEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  }
+  function validPhone(v) {
+    if (!v) { return true; }
+    return /^[+()\-\s0-9]{7,20}$/.test(v);
+  }
+
+  /* ---------- file input ---------- */
+  var fileInput = $("file"), drop = $("drop"), fileName = $("fileName"), dropLabel = $("dropLabel");
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files.length) {
+      fileName.textContent = fileInput.files[0].name;
+      dropLabel.style.display = "none";
+    } else {
+      fileName.textContent = "";
+      dropLabel.style.display = "";
+    }
+  });
+  ["dragenter", "dragover"].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add("drag"); });
+  });
+  ["dragleave", "drop"].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove("drag"); });
+  });
+  drop.addEventListener("drop", function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event("change"));
+    }
+  });
+
+  /* ---------- submit ---------- */
+  var form = $("ticketForm");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    var data = {
+      name: $("name").value.trim(),
+      email: $("email").value.trim(),
+      department: $("department").value,
+      phone: $("phone").value.trim(),
+      asset: $("asset").value.trim(),
+      priority: $("priority").value,
+      subject: $("subject").value.trim(),
+      details: $("details").value.trim(),
+      fileName: fileInput.files && fileInput.files.length ? fileInput.files[0].name : ""
+    };
+
+    var ok = true;
+    setInvalid("name", !data.name); if (!data.name) { ok = false; }
+    setInvalid("email", !validEmail(data.email)); if (!validEmail(data.email)) { ok = false; }
+    setInvalid("phone", !validPhone(data.phone)); if (!validPhone(data.phone)) { ok = false; }
+    setInvalid("priority", !data.priority); if (!data.priority) { ok = false; }
+    setInvalid("subject", !data.subject); if (!data.subject) { ok = false; }
+    setInvalid("details", data.details.length < 5); if (data.details.length < 5) { ok = false; }
+
+    if (!ok) {
+      var firstBad = form.querySelector(".field.invalid input, .field.invalid select, .field.invalid textarea");
+      if (firstBad) { firstBad.focus(); }
+      return;
+    }
+
+    var ticket = {
+      id: nextId(),
+      createdAt: new Date().toISOString(),
+      status: "Open",
+      name: data.name,
+      email: data.email,
+      department: data.department || "—",
+      phone: data.phone,
+      asset: data.asset,
+      priority: data.priority,
+      subject: data.subject,
+      details: data.details,
+      fileName: data.fileName
+    };
+
+    var all = loadTickets();
+    all.unshift(ticket);
+    saveTickets(all);
+    refreshCount();
+
+    $("successId").textContent = ticket.id;
+    form.style.display = "none";
+    document.querySelector(".required-note").style.display = "none";
+    document.querySelector(".card-head").style.display = "none";
+    $("success").classList.add("show");
+  });
+
+  // clear error as the user types
+  form.addEventListener("input", function (e) {
+    var wrap = e.target.closest(".field");
+    if (wrap && wrap.classList.contains("invalid")) {
+      wrap.classList.remove("invalid");
+    }
+  });
+
+  function resetForm() {
+    form.reset();
+    form.querySelectorAll(".invalid").forEach(function (el) { el.classList.remove("invalid"); });
+    fileName.textContent = "";
+    dropLabel.style.display = "";
+    form.style.display = "";
+    document.querySelector(".required-note").style.display = "";
+    document.querySelector(".card-head").style.display = "";
+    $("success").classList.remove("show");
+  }
+
+  /* ---------- render tickets ---------- */
+  var listEl = $("ticketList"), emptyEl = $("emptyState"), searchEl = $("searchTickets");
+
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return ""; }
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var hh = String(d.getHours()).padStart(2, "0");
+    var mi = String(d.getMinutes()).padStart(2, "0");
+    return dd + "/" + mm + "/" + d.getFullYear() + ", " + hh + ":" + mi;
+  }
+  function fmtShort(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return ""; }
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var hh = String(d.getHours()).padStart(2, "0");
+    var mi = String(d.getMinutes()).padStart(2, "0");
+    return dd + "/" + mm + "/" + d.getFullYear() + "<br>" + hh + ":" + mi;
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function prioClass(p) {
+    return "b-" + String(p || "low").toLowerCase();
+  }
+
+  function renderTickets() {
+    var q = searchEl.value.trim().toLowerCase();
+    var all = loadTickets();
+    var list = all.filter(function (t) {
+      if (!q) { return true; }
+      return (t.id + " " + t.subject + " " + (t.department || "")).toLowerCase().indexOf(q) !== -1;
+    });
+
+    listEl.innerHTML = "";
+    emptyEl.style.display = all.length === 0 ? "" : "none";
+
+    if (all.length === 0) { return; }
+
+    if (list.length === 0) {
+      listEl.innerHTML = '<div class="empty" style="display:block"><p>No ticket matches "' + esc(q) + '".</p></div>';
+      return;
+    }
+
+    list.forEach(function (t) {
+      var el = document.createElement("div");
+      el.className = "ticket";
+      el.innerHTML =
+        '<div>' +
+          '<div class="id">' + esc(t.id) + '</div>' +
+          '<div class="title">' + esc(t.subject) + '</div>' +
+          '<div class="meta">' +
+            '<span>' + esc(t.department || "—") + '</span>' +
+            '<span>' + fmtDate(t.createdAt) + '</span>' +
+            (t.fileName ? '<span>📎 ' + esc(t.fileName) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="badges">' +
+          '<span class="badge ' + prioClass(t.priority) + '">' + esc(t.priority) + '</span>' +
+          '<span class="badge ' + statusClass(t.status) + '">' + esc(t.status || "Open") + '</span>' +
+          '<button class="btn btn-ghost btn-sm" data-act="toggle" data-id="' + esc(t.id) + '">' +
+            (t.status === "Resolved" ? "Reopen" : "Mark resolved") +
+          '</button>' +
+          '<button class="btn btn-ghost btn-sm" data-act="del" data-id="' + esc(t.id) + '" title="Delete ticket">Delete</button>' +
+        '</div>';
+      listEl.appendChild(el);
+    });
+  }
+
+  listEl.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-act]");
+    if (!btn) { return; }
+    var id = btn.getAttribute("data-id");
+    var all = loadTickets();
+    var idx = all.findIndex(function (t) { return t.id === id; });
+    if (idx === -1) { return; }
+
+    if (btn.getAttribute("data-act") === "toggle") {
+      all[idx].status = all[idx].status === "Resolved" ? "Open" : "Resolved";
+    } else if (btn.getAttribute("data-act") === "del") {
+      if (!confirm("Delete ticket " + id + "? This cannot be undone.")) { return; }
+      all.splice(idx, 1);
+    }
+    saveTickets(all);
+    refreshCount();
+    renderTickets();
+  });
+
+  searchEl.addEventListener("input", renderTickets);
+
+  /* ---------- count + nav ---------- */
+  function refreshCount() {
+    var open = loadTickets().filter(function (t) { return t.status !== "Resolved"; }).length;
+    $("ticketCount").textContent = String(open);
+  }
+
+  /* ================= ADMIN AUTH ================= */
+  var ADMIN_USER = "admin";
+  var DEFAULT_PASS_HASH = "7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358"; // admin@123
+  var HASH_KEY = "helpdesk.adminHash";
+  var SESSION_KEY = "helpdesk.adminSession";
+  var FAIL_KEY = "helpdesk.adminFails";
+  var MAX_FAILS = 5;
+  var LOCK_MS = 60000;
+
+  // Compact SHA-256 (works offline, no secure-context requirement).
+  function sha256(ascii) {
+    function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+    var mathPow = Math.pow, maxWord = mathPow(2, 32), len = "length";
+    var i, j, result = "";
+    var words = [], asciiBitLength = ascii[len] * 8;
+    var hash = sha256.h = sha256.h || [];
+    var k = sha256.k = sha256.k || [];
+    var primeCounter = k[len];
+    var isComposite = {};
+    for (var candidate = 2; primeCounter < 64; candidate++) {
+      if (!isComposite[candidate]) {
+        for (i = 0; i < 313; i += candidate) { isComposite[i] = candidate; }
+        hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+        k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+      }
+    }
+    ascii += "\x80";
+    while (ascii[len] % 64 - 56) { ascii += "\x00"; }
+    for (i = 0; i < ascii[len]; i++) {
+      j = ascii.charCodeAt(i);
+      if (j >> 8) { return ""; }
+      words[i >> 2] |= j << ((3 - i) % 4) * 8;
+    }
+    words[words[len]] = ((asciiBitLength / maxWord) | 0);
+    words[words[len]] = (asciiBitLength);
+    for (j = 0; j < words[len];) {
+      var w = words.slice(j, j += 16);
+      var oldHash = hash;
+      hash = hash.slice(0, 8);
+      for (i = 0; i < 64; i++) {
+        var w15 = w[i - 15], w2 = w[i - 2];
+        var a = hash[0], e = hash[4];
+        var temp1 = hash[7]
+          + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+          + ((e & hash[5]) ^ ((~e) & hash[6]))
+          + k[i]
+          + (w[i] = (i < 16) ? w[i] : (
+              w[i - 16]
+              + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+              + w[i - 7]
+              + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+            ) | 0
+          );
+        var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+          + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+        hash = [(temp1 + temp2) | 0].concat(hash);
+        hash[4] = (hash[4] + temp1) | 0;
+      }
+      for (i = 0; i < 8; i++) { hash[i] = (hash[i] + oldHash[i]) | 0; }
+    }
+    for (i = 0; i < 8; i++) {
+      for (j = 3; j + 1; j--) {
+        var b = (hash[i] >> (j * 8)) & 255;
+        result += ((b < 16) ? 0 : "") + b.toString(16);
+      }
+    }
+    return result;
+  }
+
+  function passHash() {
+    try { return localStorage.getItem(HASH_KEY) || DEFAULT_PASS_HASH; }
+    catch (e) { return DEFAULT_PASS_HASH; }
+  }
+  function isAuthed() {
+    try { return sessionStorage.getItem(SESSION_KEY) === "1"; }
+    catch (e) { return false; }
+  }
+  function setAuthed(on) {
+    try {
+      if (on) { sessionStorage.setItem(SESSION_KEY, "1"); }
+      else { sessionStorage.removeItem(SESSION_KEY); }
+    } catch (e) { /* private mode: session lasts this page only */ }
+  }
+  function lockState() {
+    try {
+      var o = JSON.parse(localStorage.getItem(FAIL_KEY) || "{}");
+      return { fails: o.fails || 0, until: o.until || 0 };
+    } catch (e) { return { fails: 0, until: 0 }; }
+  }
+  function setLock(o) {
+    try { localStorage.setItem(FAIL_KEY, JSON.stringify(o)); } catch (e) {}
+  }
+
+  $("togglePass").addEventListener("click", function () {
+    var inp = $("loginPass");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "Hide" : "Show";
+  });
+
+  $("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = $("loginErr");
+    err.classList.remove("show");
+    var now = Date.now();
+    var st = lockState();
+
+    if (st.until > now) {
+      err.textContent = "Too many wrong attempts. Try again in " + Math.ceil((st.until - now) / 1000) + " seconds.";
+      err.classList.add("show");
+      return;
+    }
+
+    var user = $("loginUser").value.trim();
+    var pass = $("loginPass").value;
+
+    if (user.toLowerCase() !== ADMIN_USER || sha256(pass) !== passHash()) {
+      var fails = st.fails + 1;
+      if (fails >= MAX_FAILS) {
+        setLock({ fails: 0, until: now + LOCK_MS });
+        err.textContent = "Too many wrong attempts. Locked for 60 seconds.";
+      } else {
+        setLock({ fails: fails, until: 0 });
+        err.textContent = "Wrong username or password. " + (MAX_FAILS - fails) + " attempt(s) left.";
+      }
+      err.classList.add("show");
+      $("loginPass").value = "";
+      $("loginPass").focus();
+      return;
+    }
+
+    setLock({ fails: 0, until: 0 });
+    setAuthed(true);
+    $("loginPass").value = "";
+    $("loginErr").classList.remove("show");
+    showView("admin");
+  });
+
+  $("signOut").addEventListener("click", function () {
+    setAuthed(false);
+    closePwModal();
+    $("loginPass").value = "";
+    $("loginErr").classList.remove("show");
+    showView("login");
+  });
+
+  /* ---------- change password ---------- */
+  var pwModal = $("pwModal");
+
+  function openPwModal() {
+    $("pwErr").classList.remove("show");
+    $("pwCurrent").value = "";
+    $("pwNew").value = "";
+    $("pwConfirm").value = "";
+    pwModal.classList.add("show");
+    pwModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { $("pwCurrent").focus(); }, 60);
+  }
+  function closePwModal() {
+    pwModal.classList.remove("show");
+    pwModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  function pwError(msg) {
+    var e = $("pwErr");
+    e.textContent = msg;
+    e.classList.add("show");
+  }
+
+  $("openPw").addEventListener("click", openPwModal);
+  $("pwClose").addEventListener("click", closePwModal);
+  $("pwCancel").addEventListener("click", closePwModal);
+  pwModal.addEventListener("click", function (e) { if (e.target === pwModal) { closePwModal(); } });
+
+  $("pwSave").addEventListener("click", function () {
+    if (sha256($("pwCurrent").value) !== passHash()) { pwError("Current password is not correct."); return; }
+    var np = $("pwNew").value;
+    if (np.length < 6) { pwError("New password must be at least 6 characters."); return; }
+    if (np !== $("pwConfirm").value) { pwError("The two new passwords do not match."); return; }
+    try {
+      localStorage.setItem(HASH_KEY, sha256(np));
+    } catch (e) {
+      pwError("This browser blocked local storage, so the password could not be saved.");
+      return;
+    }
+    closePwModal();
+    alert("Admin password updated. Use the new password next time you sign in.");
+  });
+
+  /* ================= ADMIN DASHBOARD ================= */
+  var adminState = { q: "", status: "All", priority: "All", dept: "All", sort: "new" };
+  var adminRows = $("adminRows"), adminEmpty = $("adminEmpty"), adminSearch = $("adminSearch");
+  var PRIO_RANK = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+
+  function statusClass(s) {
+    if (s === "Resolved") { return "b-resolved"; }
+    if (s === "In Progress") { return "b-progress"; }
+    return "b-open";
+  }
+
+  function renderAdmin() {
+    var all = loadTickets();
+    var q = adminState.q.toLowerCase();
+
+    var list = all.filter(function (t) {
+      if (adminState.status !== "All" && (t.status || "Open") !== adminState.status) { return false; }
+      if (adminState.priority !== "All" && t.priority !== adminState.priority) { return false; }
+      if (adminState.dept !== "All" && (t.department || "—") !== adminState.dept) { return false; }
+      if (!q) { return true; }
+      return (t.id + " " + t.subject + " " + (t.department || "") + " " + t.name + " " + t.email).toLowerCase().indexOf(q) !== -1;
+    });
+
+    list = list.slice().sort(function (a, b) {
+      if (adminState.sort === "old") { return new Date(a.createdAt) - new Date(b.createdAt); }
+      if (adminState.sort === "prio") {
+        var ra = PRIO_RANK[a.priority] === undefined ? 9 : PRIO_RANK[a.priority];
+        var rb = PRIO_RANK[b.priority] === undefined ? 9 : PRIO_RANK[b.priority];
+        return ra - rb;
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    var open = 0, prog = 0, done = 0, crit = 0;
+    all.forEach(function (t) {
+      var s = t.status || "Open";
+      if (s === "Resolved") { done++; }
+      else if (s === "In Progress") { prog++; }
+      else { open++; }
+      if (s !== "Resolved" && t.priority === "Critical") { crit++; }
+    });
+    $("kpiTotal").textContent = all.length;
+    $("kpiOpen").textContent = open;
+    $("kpiProg").textContent = prog;
+    $("kpiDone").textContent = done;
+    $("kpiCrit").textContent = crit;
+
+    // department filter options
+    var depts = [];
+    all.forEach(function (t) { var d = t.department || "—"; if (depts.indexOf(d) === -1) { depts.push(d); } });
+    depts.sort();
+    var deptSel = $("adminDept");
+    deptSel.innerHTML = '<option value="All">All departments</option>' + depts.map(function (d) {
+      return '<option' + (d === adminState.dept ? ' selected' : '') + '>' + esc(d) + '</option>';
+    }).join("");
+
+    adminRows.innerHTML = "";
+    adminEmpty.style.display = all.length === 0 ? "" : "none";
+    if (all.length === 0) { return; }
+
+    if (list.length === 0) {
+      adminRows.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:26px">No ticket matches these filters.</td></tr>';
+      return;
+    }
+
+    list.forEach(function (t) {
+      var tr = document.createElement("tr");
+      tr.setAttribute("data-id", t.id);
+      tr.setAttribute("title", "Open " + t.id);
+      tr.innerHTML =
+        '<td class="mono">' + esc(t.id) + '</td>' +
+        '<td><div style="font-weight:600">' + esc(t.subject) + '</div>' +
+          '<div style="font-size:12px;color:#64748b">' + esc(t.department || "—") +
+          (t.asset ? ' · ' + esc(t.asset) : '') + '</div></td>' +
+        '<td class="who">' + esc(t.name) + '<span>' + esc(t.email) + '</span></td>' +
+        '<td><span class="badge ' + prioClass(t.priority) + '">' + esc(t.priority) + '</span></td>' +
+        '<td><span class="badge ' + statusClass(t.status || "Open") + '">' + esc(t.status || "Open") + '</span></td>' +
+        '<td style="color:#64748b;font-size:12px;line-height:1.35">' + fmtShort(t.createdAt) + '</td>';
+      adminRows.appendChild(tr);
+    });
+  }
+
+  adminRows.addEventListener("click", function (e) {
+    var tr = e.target.closest("tr[data-id]");
+    if (tr) { openTicket(tr.getAttribute("data-id")); }
+  });
+  adminSearch.addEventListener("input", function () {
+    adminState.q = adminSearch.value.trim();
+    renderAdmin();
+  });
+  $("statusChips").addEventListener("click", function (e) {
+    var btn = e.target.closest(".chip");
+    if (!btn) { return; }
+    adminState.status = btn.getAttribute("data-status");
+    Array.prototype.forEach.call(this.querySelectorAll(".chip"), function (c) {
+      c.classList.toggle("on", c === btn);
+    });
+    renderAdmin();
+  });
+  $("adminPriority").addEventListener("change", function () { adminState.priority = this.value; renderAdmin(); });
+  $("adminDept").addEventListener("change", function () { adminState.dept = this.value; renderAdmin(); });
+  $("adminSort").addEventListener("change", function () { adminState.sort = this.value; renderAdmin(); });
+
+  /* ---------- detail modal ---------- */
+  var modal = $("modal"), modalBody = $("modalBody"), currentId = null;
+
+  function openTicket(id) {
+    var found = loadTickets().filter(function (x) { return x.id === id; })[0];
+    if (!found) { return; }
+    currentId = id;
+    $("modalId").textContent = found.id;
+    $("modalSubject").textContent = found.subject;
+    var status = found.status || "Open";
+
+    modalBody.innerHTML =
+      '<div class="kv">' +
+        '<div class="k">Requester</div><div class="v">' + esc(found.name) + '</div>' +
+        '<div class="k">Email</div><div class="v">' + esc(found.email) + '</div>' +
+        '<div class="k">Department</div><div class="v">' + esc(found.department || "—") + '</div>' +
+        '<div class="k">Phone</div><div class="v">' + esc(found.phone || "—") + '</div>' +
+        '<div class="k">Asset</div><div class="v">' + esc(found.asset || "—") + '</div>' +
+        '<div class="k">Raised on</div><div class="v">' + fmtDate(found.createdAt) + '</div>' +
+        (found.fileName ? '<div class="k">Attachment</div><div class="v">' + esc(found.fileName) + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:12.5px;color:#64748b;margin-bottom:6px">Description</div>' +
+      '<div class="desc">' + esc(found.details) + '</div>' +
+      '<div class="grid" style="gap:14px;margin-bottom:14px">' +
+        '<div class="field"><label for="mStatus">Status</label><select id="mStatus">' +
+          ["Open", "In Progress", "Resolved"].map(function (s) {
+            return '<option' + (s === status ? ' selected' : '') + '>' + s + '</option>';
+          }).join("") +
+        '</select></div>' +
+        '<div class="field"><label for="mPriority">Priority</label><select id="mPriority">' +
+          ["Low", "Medium", "High", "Critical"].map(function (p) {
+            return '<option' + (p === found.priority ? ' selected' : '') + '>' + p + '</option>';
+          }).join("") +
+        '</select></div>' +
+      '</div>' +
+      '<div class="field"><label for="mNote">Internal note</label>' +
+        '<textarea id="mNote" placeholder="What did the IT team do?">' + esc(found.note || "") + '</textarea></div>';
+
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    currentId = null;
+  }
+
+  $("modalSave").addEventListener("click", function () {
+    if (!currentId) { return; }
+    var all = loadTickets();
+    var t = all.filter(function (x) { return x.id === currentId; })[0];
+    if (!t) { closeModal(); return; }
+    t.status = $("mStatus").value;
+    t.priority = $("mPriority").value;
+    t.note = $("mNote").value.trim();
+    t.updatedAt = new Date().toISOString();
+    saveTickets(all);
+    closeModal();
+    refreshCount(); renderAdmin(); renderTickets();
+  });
+
+  $("modalDelete").addEventListener("click", function () {
+    if (!currentId) { return; }
+    if (!confirm("Delete ticket " + currentId + "? This cannot be undone.")) { return; }
+    var keep = loadTickets().filter(function (x) { return x.id !== currentId; });
+    saveTickets(keep);
+    closeModal();
+    refreshCount(); renderAdmin(); renderTickets();
+  });
+
+  $("modalClose").addEventListener("click", closeModal);
+  $("modalCancel").addEventListener("click", closeModal);
+  modal.addEventListener("click", function (e) { if (e.target === modal) { closeModal(); } });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") { return; }
+    if (pwModal.classList.contains("show")) { closePwModal(); return; }
+    if (modal.classList.contains("show")) { closeModal(); }
+  });
+
+  /* ---------- export / import / demo ---------- */
+  function download(name, text, type) {
+    var blob = new Blob([text], { type: type || "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 800);
+  }
+
+  $("exportCsv").addEventListener("click", function () {
+    var all = loadTickets();
+    if (!all.length) { alert("No tickets to export yet."); return; }
+    var q = function (v) { return '"' + String(v === null || v === undefined ? "" : v).replace(/"/g, '""') + '"'; };
+    var rows = [["Ticket", "Subject", "Requester", "Email", "Department", "Phone", "Asset", "Priority", "Status", "Raised", "Note"].map(q).join(",")];
+    all.forEach(function (t) {
+      rows.push([t.id, t.subject, t.name, t.email, t.department, t.phone, t.asset, t.priority, t.status || "Open", fmtDate(t.createdAt), t.note || ""].map(q).join(","));
+    });
+    download("tickets-" + new Date().toISOString().slice(0, 10) + ".csv", rows.join("\r\n"), "text/csv;charset=utf-8");
+  });
+
+  $("exportJson").addEventListener("click", function () {
+    var all = loadTickets();
+    if (!all.length) { alert("No tickets to back up yet."); return; }
+    download("helpdesk-backup-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify(all, null, 2), "application/json");
+  });
+
+  $("importJsonBtn").addEventListener("click", function () { $("importJson").click(); });
+  $("importJson").addEventListener("change", function () {
+    var f = this.files && this.files[0];
+    if (!f) { return; }
+    var input = this;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var incoming = JSON.parse(String(reader.result));
+        if (!Array.isArray(incoming)) { throw new Error("the file must contain a list of tickets"); }
+        var all = loadTickets();
+        var added = 0;
+        incoming.forEach(function (t) {
+          if (!t || !t.id || !t.subject) { return; }
+          var dup = all.some(function (x) { return x.id === t.id; });
+          if (!dup) { all.push(t); added++; }
+        });
+        saveTickets(all);
+        refreshCount(); renderAdmin(); renderTickets();
+        alert(added + " ticket(s) imported.");
+      } catch (err) {
+        alert("Could not read that file: " + err.message);
+      }
+    };
+    reader.readAsText(f);
+    input.value = "";
+  });
+
+  function addDemoTickets() {
+    var demo = [
+      { name: "Priya Nair", email: "priya.nair@company.com", department: "Finance & Accounts", phone: "+91 98200 11223", asset: "LAP-0107", priority: "High", subject: "Tally not opening after Windows update", details: "Tally Prime shows a licence error after last night's Windows update. Reinstalled once, same error.", status: "Open" },
+      { name: "Rahul Verma", email: "rahul.verma@company.com", department: "Sales", phone: "+91 98330 44556", asset: "LAP-0233", priority: "Critical", subject: "Outlook mailbox full, mails bouncing", details: "Mails are bouncing back since morning. Mailbox is 50 GB. Need urgent help, client quotes pending.", status: "In Progress" },
+      { name: "Anita Deshpande", email: "anita.d@company.com", department: "Human Resources", phone: "+91 91670 99881", asset: "DSK-0045", priority: "Medium", subject: "Need access to HR shared folder", details: "Please give read access to the HR shared folder for the new joiner onboarding pack.", status: "Open" },
+      { name: "Imran Shaikh", email: "imran.shaikh@company.com", department: "Operations", phone: "+91 90040 33221", asset: "PRN-0012", priority: "Low", subject: "Printer on 2nd floor not printing", details: "Printer shows paper jam but there is no paper stuck. Tried restarting it.", status: "Resolved" },
+      { name: "Sneha Kulkarni", email: "sneha.k@company.com", department: "IT", phone: "+91 88790 12345", asset: "LAP-0301", priority: "High", subject: "Laptop very slow after last update", details: "Boot takes about 8 minutes and apps freeze. Disk usage stays at 100% in Task Manager.", status: "In Progress" }
+    ];
+    var all = loadTickets();
+    demo.forEach(function (d, i) {
+      var base = { id: nextId(), createdAt: new Date(Date.now() - (i + 1) * 6 * 3600 * 1000).toISOString(), note: "" };
+      all.unshift(Object.assign(base, d));
+    });
+    saveTickets(all);
+    refreshCount(); renderAdmin(); renderTickets();
+  }
+
+  $("seedDemo").addEventListener("click", addDemoTickets);
+  $("adminSeedEmpty").addEventListener("click", addDemoTickets);
+
+  $("clearAll").addEventListener("click", function () {
+    var n = loadTickets().length;
+    if (!n) { alert("There are no tickets to clear."); return; }
+    if (!confirm("Delete all " + n + " ticket(s) from this browser? This cannot be undone.")) { return; }
+    saveTickets([]);
+    refreshCount(); renderAdmin(); renderTickets();
+  });
+
+  /* ---------- navigation ---------- */
+  $("navNew").addEventListener("click", function () { resetForm(); showView("new"); });
+  $("navTickets").addEventListener("click", function () { showView("tickets"); });
+  $("navAdmin").addEventListener("click", function () { showView("admin"); });
+  $("backToForm").addEventListener("click", function () { resetForm(); showView("new"); });
+  $("backFromAdmin").addEventListener("click", function () { resetForm(); showView("new"); });
+  $("emptyNew").addEventListener("click", function () { resetForm(); showView("new"); });
+  $("viewMyTickets").addEventListener("click", function () { showView("tickets"); });
+  $("raiseAnother").addEventListener("click", function () { resetForm(); showView("new"); });
+
+  refreshCount();
+  renderTickets();
+  renderAdmin();
+})();
+</script>
+</body>
+</html>
